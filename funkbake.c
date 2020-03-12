@@ -64,7 +64,7 @@
  * alles andere wird als Worttrennung aufgefasst und verursacht eine Pause.
  * Die Funktion gibt die Zeit die sie zum Morsen gebraucht hat in ms zurück.
  */
-static unsigned int string_to_morse(const char* msg)
+static int32_t string_to_morse(const char* msg)
 {
     unsigned int t = 0;
     for (;*msg; msg++) {
@@ -154,9 +154,9 @@ int main(void)
     
     while (1) {
         uint8_t tmp = dip_to_index();
-        unsigned int t = string_to_morse(text[tmp]);
+        int32_t t = string_to_morse(text[tmp]);
         REED_RELAIS_ON;
-        for (int i = 60000 - 7 * DIT_LEN - t; i > 0; i -= DIT_LEN)
+        for (int32_t i = 60000 - 7 * DIT_LEN - t; i > 0; i -= DIT_LEN)
             _delay_ms(DIT_LEN);
         symbol_space; letter_space; word_space;
     }
