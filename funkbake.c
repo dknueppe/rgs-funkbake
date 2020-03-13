@@ -1,9 +1,9 @@
 /**
- * Funkbake.c
+ * @file funkbake.c
  * 
- * Author : Daniel Knüppe
+ * @author Daniel Knüppe
  * 
- * Brief : Signalgenerator für eine Funkbake
+ * @brief Signalgenerator für eine Funkbake
  * 
  * Der Mikrokontroller ist ein ATtiny84 (Als Device für den flasher)
  * 
@@ -35,14 +35,18 @@
 
 /**
  * Diese Makros sind nur Shortcuts zum Ein- und Ausschalten des Relais
- * Es ist nicht geeignet um den Aktuellen Zustand abzufragen.
- *     if (REED_RELAIS_ON)
- * prüft NICHT ob das Relais eingeschaltet ist!
+ * beziehungsweise des Open-Collector Ausgangs. Es ist nicht geeignet um den 
+ * Aktuellen Zustand abzufragen.
+ *     if (REED_RELAIS_ON)  (etc.)
+ * prüft NICHT ob das Relais beziehungsweise der Open-Collector ein- / 
+ * ausgeschaltet ist!
  */
 #define REED_RELAIS_ON     (PORTA |=  (1 << PORTA7))
 #define REED_RELAIS_OFF    (PORTA &= ~(1 << PORTA7))
 #define OPEN_COLLECTOR_ON  (PORTB |=  (1 << PORTB2))
 #define OPEN_COLLECTOR_OFF (PORTB &= ~(1 << PORTB2))
+#define BOTH_ON REED_RELAIS_ON; OPEN_COLLECTOR_ON;
+#define BOTH_OFF REED_RELAIS_OFF; OPEN_COLLECTOR_OFF;
 
 /**
  * Jedes Symbol besteht aus 'dit' oder 'dah' und wird von einem
@@ -51,11 +55,12 @@
  * 'letter_space' kommt, ist 'word_space' auch nur 4 dit lang.
  */
 #define DIT_LEN 200
-#define symbol_space    REED_RELAIS_OFF;    _delay_ms(DIT_LEN);                         t +=     DIT_LEN
-#define letter_space                        _delay_ms(2 * DIT_LEN);                     t += 2 * DIT_LEN
-#define word_space                          _delay_ms(4 * DIT_LEN);                     t += 4 * DIT_LEN
-#define dit             REED_RELAIS_ON;     _delay_ms(DIT_LEN);         symbol_space;   t +=     DIT_LEN;
-#define dah             REED_RELAIS_ON;     _delay_ms(3 * DIT_LEN);     symbol_space;   t += 3 * DIT_LEN;
+#define delay_and_count(x) _delay_ms(x * DIT_LEN); t += x * DIT_LEN
+#define symbol_space    BOTH_OFF;   delay_and_count(1)
+#define letter_space                delay_and_count(2)
+#define word_space                  delay_and_count(4)
+#define dit             BOTH_ON;    delay_and_count(1); symbol_space;
+#define dah             BOTH_ON;    delay_and_count(3); symbol_space;
 
 /**
  * Eine Look-Up Tabelle, um ein Zeichen in seine Räpresentation
@@ -68,7 +73,7 @@ static int32_t string_to_morse(const char* msg)
 {
     unsigned int t = 0;
     for (;*msg; msg++) {
-        /* Kleinbuchstaben zu Groübuchstaben konvertieren */
+        /* Kleinbuchstaben zu Großbuchstaben konvertieren */
         char c = ((*msg >= 'a') && (*msg <= 'z')) ? *msg + ('A' - 'a') : *msg ;
         switch (c) {
         case 'A': dit dah               break;
@@ -107,7 +112,7 @@ static int32_t string_to_morse(const char* msg)
         case '8': dah dah dah dit dit   break;
         case '9': dah dah dah dah dit   break;
         case '0': dah dah dah dah dah   break;
-        default: word_space;
+        default : word_space;
         }
         letter_space;
     }
@@ -122,9 +127,9 @@ static int32_t string_to_morse(const char* msg)
 static void init()
 {
     PORTA = 0x80;
-    DDRA = 0x80;
+    DDRA  = 0x80;
     PORTB = 0x04;
-    DDRB = 0x04;
+    DDRB  = 0x04;
 }
 
 /*
@@ -133,28 +138,38 @@ static void init()
  */
 static uint8_t dip_to_index()
 {
-    uint8_t tmp = ((~PINA & 0x1) << 3) | \
+    uint8_t pos = ((~PINA & 0x1) << 3) | \
                   ((~PINA & 0x2) << 1) | \
                   ((~PINA & 0x4) >> 1) | \
                   ((~PINA & 0x8) >> 3);
-    return tmp;
+    return pos;
 }
 
+/**
+ * Hier sind die über den Dipschalter wählbaren Texte hinterlegt.
+ * Die Position im Array korrespondiert zu der Position des Dipschalters.
+ */
+static const char *text[16] = {
+    "DF0MU ",
+    "DJ8EN",
+    "DK2FD",
+    "DL8YEH",
+    "DH8AF",
+};
+
+/**
+ * Die main Routine initialisiert zuerst die Ausgänge entsprechend der init Routine.
+ * Anschließend wird in einer Endlosschleife die Position des Dipschalters
+ * abgefragt. Anschließend wird ein Textstring aus dem obigen Array gewählt
+ * und gemorst. Schließlich wird noch das Restintervall zu einer Minute (60000ms)
+ * gewartet, bevor die Schleife erneut beginnt.
+ */
 int main(void)
 {
     init();
-    
-    const char *text[16] = {
-        "DF0MU ",
-        "DJ8EN",
-        "DK2FD",
-        "DL8YEH",
-        "DH8AF",
-    };
-    
     while (1) {
-        uint8_t tmp = dip_to_index();
-        int32_t t = string_to_morse(text[tmp]);
+        uint8_t pos = dip_to_index();
+        int32_t t = string_to_morse(text[pos]);
         REED_RELAIS_ON;
         for (int32_t i = 60000 - 7 * DIT_LEN - t; i > 0; i -= DIT_LEN)
             _delay_ms(DIT_LEN);
