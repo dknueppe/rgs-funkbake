@@ -54,7 +54,8 @@
  * zwei dit lang, und da nach jedem Buchstaben bereits ein 
  * 'letter_space' kommt, ist 'word_space' auch nur 4 dit lang.
  */
-#define DIT_LEN 200
+#define WPM_TO_DIT_LEN(WPM) (1200 / WPM)
+#define DIT_LEN WPM_TO_DIT_LEN(15)
 #define delay_and_count(x) _delay_ms(x * DIT_LEN); t += x * DIT_LEN
 #define symbol_space    BOTH_OFF;   delay_and_count(1)
 #define letter_space                delay_and_count(2)
