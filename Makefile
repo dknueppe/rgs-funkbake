@@ -26,7 +26,7 @@ WARNINGS        = all extra pedantic error cast-align cast-qual disabled-optimiz
                   maybe-uninitialized pointer-arith missing-prototypes
 CFLAGS          = -mmcu=$(MICROCONTROLLER) -g$(DEBUG) -O$(OPTIMIZATION) -std=c11
 
-all : $(BUILD_DIR) $(BUILD_DIR)/$(TARGET).hex
+all : $(BUILD_DIR) $(BUILD_DIR)/$(TARGET).hex program
 
 $(BUILD_DIR) :
 	mkdir $(BUILD_DIR)

@@ -29,7 +29,10 @@ Reedrelais sowie ein Open-Collector Ausgang genutzt an dem ein HF-Frontend anges
 werden kann. Eine Umstellung am Dipschalter wird beim nächsten Intervall übernommen.
 Eine grüne LED leuchtet durchgehend und zeigt an, dass Spannung anliegt, und das
 Gerät bereit ist. Eine rote LED leuchtet parallel zum Steuerkontakt des Relais,
-an ihr kann der Morsecode direkt abgelesen werden.
+an ihr kann der Morsecode direkt abgelesen werden. Zum bauen der Software sowie zum
+flashen des verbauten Mikrocontrollers ist ein Makefile vorhanden, benötigt werden
+hierfür make, avr-gcc, und avrdude. Alternativ kann auch funkbake.c in eine Atmel-Studio
+Projekt importiert werden.
 
 # Anforderungen {#Anforderungen}
 
