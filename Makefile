@@ -47,7 +47,12 @@ fuses :
 program: $(BUILD_DIR)/$(TARGET).hex
 	avrdude -p $(MICROCONTROLLER) -P $(PROG_PORT) -c $(PROGRAMMER) -U flash:w:$^
 
+doc_$(TARGET).pdf : README.md
+	pandoc -o $@ $^ -f markdown-implicit_figures
+
+doc : doc_$(TARGET).pdf
+
 clean :
 	rm -rf $(BUILD_DIR)
 
-.PHONY : all program clean
+.PHONY : all program clean doc

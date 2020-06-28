@@ -1,70 +1,92 @@
 ---
-documentclass: extreport
-title: 'Signalgenerator für eine Funkbake'
-author: 'Daniel Knüppe'
 lang: de
-fontsize: 10pt
----
+title: "Signalgenerator für eine Funkbake"
+subtitle: "Ein Projekt für das Modul Rechnergestützter Schaltungsentwurf"
+author: "Daniel Knüppe"
+date: \today{}
+documentclass: article
+toc: false
+toc-depth: 2
+shift-heading-level-by: 1
 
-# Funktionsbeschreibung
+---
+\newpage
+![](img/front.jpg)
+\tableofcontents
+
+Alle Unterlagen können im folgendem Git Repository gefunden werden.
+
+[https://git.fh-muenster.de/dk426722/rgs-funkbake](https://git.fh-muenster.de/dk426722/rgs-funkbake)
+
+\newpage
+# Funktionsbeschreibung {#Funktionsbeschreibung}
 
 Die Versorgungsspannung muss für den korrekten Betrieb zwischen 8 und 35 Volt liegen.
 Der Signalgenerator morst eine, über den vorne am Gehäuse montierten Dipschalter
-wählbare, Kennung. Im Intervall von einer Minute wird zuerst die Kennung gemorst und
-anschließend wird permanent gefunkt, bis die Minute vorbei ist. Hierzu wird ein
+wählbare, Kennung. Im Intervall von einer Minute wird zuerst die Kennung gemorst
+und anschließend wird permanent gefunkt, bis die Minute vorbei ist. Hierzu wird ein
 Reedrelais sowie ein Open-Collector Ausgang genutzt an dem ein HF-Frontend angeschlossen
 werden kann. Eine Umstellung am Dipschalter wird beim nächsten Intervall übernommen.
-Eine grüne LED leuchtet durchgehend und zeigt an, dass Spannung anliegt, und das Gerät
-bereit ist. Eine rote LED leuchtet parallel zum Steuerkontakt des Relais, an ihr kann
-der Morsecode direkt abgelesen werden.
+Eine grüne LED leuchtet durchgehend und zeigt an, dass Spannung anliegt, und das
+Gerät bereit ist. Eine rote LED leuchtet parallel zum Steuerkontakt des Relais,
+an ihr kann der Morsecode direkt abgelesen werden.
 
-# Anforderungen
+# Anforderungen {#Anforderungen}
 
 - Variable Eingangsspannung
 - Wahlmöglichkeit für verschiedene Texte
 - möglichst zeitlich präzise
 
-# Designentscheidung bei Schaltplan und Layout
+# Schaltplan {#Schaltplan}
+![Schaltplan](img/schematic.png)
+
+# Layout {#Layout}
+![Vorderseite und gespiegelte Rückseite des Layouts](img/both_layouts_cropped.png){ height=100% width=100% }
+
+\newpage
+# Designentscheidung bei Schaltplan und Layout {#Designentscheidung}
 
 Um möglichst flexibel zu sein, was gesendet wird wurde zur Steuerung ein Mikrocontroller
 eingesetzt. Dieser hat einen Quarz um präzises timing zu ermöglichen. Um einen möglichst
-großen Einsatzbereich abzudecken wurde die Platinengröße so angepasst, das sie in ein
-Weißblechgehäuse mit standardisierter größe passt. Desweiteren wurde eine Diode
-zum Verpolschutz eingesetzt, sowie ein linearer Spannungsregler, um einen großen Bereich
-an Eingangsspannungen abzudecken. Um das Relais schalten zu können, sowie einen
-Open-Collector Ausgang zu nutzen, wurden die Ausgänge des Mikrocontrollers mit einem
-Handelsüblichen NPN-Transistor (2N2222) gepuffert. Um mögliche Fehler beim Betrieb
-leicht feststellen zu können, gibt es zwei LEDs, welche von Außen durch das Gehäuse
-sichtbar sind. Es wurde außerdem die Programmierschnittstelle an eine seperate
-Stiftleiste gelegt, um den Mikrocontroller im normalen Betrieb neu flashen zu können.
-Zum Schutz Vor der Rückinduktion durch die Spule des Relais wurde eine RC-Löschglied
-direkt neben der Spule plaziert.
+großen Einsatzbereich abzudecken wurde die Platinengröße so angepasst, das sie in
+ein Weißblechgehäuse mit standardisierter größe passt. Desweiteren wurde eine Diode
+zum Verpolschutz eingesetzt, sowie ein linearer Spannungsregler, um einen großen
+Bereich an Eingangsspannungen abzudecken. Um das Relais schalten zu können, sowie
+einen Open-Collector Ausgang zu nutzen, wurden die Ausgänge des Mikrocontrollers
+mit einem Handelsüblichen NPN-Transistor (2N2222) gepuffert. Um mögliche Fehler
+beim Betrieb leicht feststellen zu können, gibt es zwei LEDs, welche von Außen
+durch das Gehäuse sichtbar sind. Es wurde außerdem die Programmierschnittstelle
+an eine seperate Stiftleiste gelegt, um den Mikrocontroller im normalen Betrieb
+neu flashen zu können. Zum Schutz Vor der Rückinduktion durch die Spule des Relais
+wurde eine RC-Löschglied direkt neben der Spule plaziert.
 
-## Fehler und Verbesserungen
+## Fehler und Verbesserungen {#Fehler}
 
 Im aktuellen Design ist der Footprint für den Dipschalter falsch. Es ist ein Footprint
 für einen liegenden Dipschalter, es ist jedoch ein stehender eingelötet. Ursprünglich
 waren keine Sockel für die DIP ICs eingeplant, weshalb es schwer war an einigen Stellen
 die Signal auf der oberen und unteren Kupferschicht zu verbinden (an einem DIP könnte
 man sonst bequem von beiden Seiten verlöten). Weshalb an einigen stellen nachträglich
-Bohrungen für Durchkontaktierungen angebracht worden sind. Die Sockel sind außerdem
-beide falschherum eingelötet. Die Pullupwiderstände am Dipschalter sind überflüssig,
+Bohrungen für Durchkontaktierungen angebracht worden sind. Dies ist an den Entsprechenden
+Stellen in den nächsten Abbildungen kenntlich gemacht worden. **Die Sockel sind außerdem
+beide falschherum eingelötet**. Die Pullupwiderstände am Dipschalter sind überflüssig,
 da der Mikrocontroller diese bereits intern hat, jedoch sind diese nicht sehr präzise.
+![Markierung der nachträglich eingebrachten Masse Durchkontaktierungen](img/both_marked.jpg)
 
-# Firmware
+\newpage
+# Firmware {#Firmware}
 
 ```c
-/**
+/***
  * @file funkbake.c
- * 
+ *
  * @author Daniel Knüppe
- * 
+ *
  * @brief Signalgenerator für eine Funkbake
- * 
+ *
  * Der Mikrokontroller ist ein ATtiny84 (Als Device für den flasher)
- * 
+ *
  * Fuse Bit settings für das Projekt Funkpbake:
- * 
  * SELFPRGEN    = [ ]
  * RSTDISBL     = [ ]
  * DWEN         = [ ]
@@ -75,7 +97,6 @@ da der Mikrocontroller diese bereits intern hat, jedoch sind diese nicht sehr pr
  * CKDIV8       = [X]
  * CKOUT        = [ ]
  * SUT_CKSEL    = EXTXOSC_8MHZ_XX_16KCK_14CK_65MS
- * 
  * EXTENDED     = 0xFF (valid)
  * HIGH         = 0xDF (valid)
  * LOW          = 0x7F (valid)
@@ -91,31 +112,37 @@ da der Mikrocontroller diese bereits intern hat, jedoch sind diese nicht sehr pr
 
 /**
  * Diese Makros sind nur Shortcuts zum Ein- und Ausschalten des Relais
- * beziehungsweise des Open-Collector Ausgangs. Es ist nicht geeignet um den 
+ * beziehungsweise des Open-Collector Ausgangs. Es ist nicht geeignet um den
  * Aktuellen Zustand abzufragen.
  *     if (REED_RELAIS_ON)  (etc.)
- * prüft NICHT ob das Relais beziehungsweise der Open-Collector ein- / 
+ * prüft NICHT ob das Relais beziehungsweise der Open-Collector ein- /
  * ausgeschaltet ist!
  */
 #define REED_RELAIS_ON     (PORTA |=  (1 << PORTA7))
 #define REED_RELAIS_OFF    (PORTA &= ~(1 << PORTA7))
 #define OPEN_COLLECTOR_ON  (PORTB |=  (1 << PORTB2))
 #define OPEN_COLLECTOR_OFF (PORTB &= ~(1 << PORTB2))
-#define BOTH_ON REED_RELAIS_ON OPEN_COLLECTOR_ON
-#define BOTH_OFF REED_RELAIS_OFF OPEN_COLLECTOR_OFF
+#define BOTH_ON REED_RELAIS_ON; OPEN_COLLECTOR_ON;
+#define BOTH_OFF REED_RELAIS_OFF; OPEN_COLLECTOR_OFF;
 
 /**
  * Jedes Symbol besteht aus 'dit' oder 'dah' und wird von einem
  * 'symbol_space' abgeschlossen, deshalb ist 'letter_space' nur
- * zwei dit lang, und da nach jedem Buchstaben bereits ein 
+ * zwei dit lang, und da nach jedem Buchstaben bereits ein
  * 'letter_space' kommt, ist 'word_space' auch nur 4 dit lang.
+ * DIT_LEN ist die Dauer eines Dit in Millisekunden, das Makro
+ * WPM_TO_DIT_LEN rechnet automatisch die Dauer eines Dit für
+ * eine gewünschte Sendegeschwindigkeit aus. DIT_LEN kann jedoch
+ * auch von Hand auf einen festen Wert gesetzt werden.
  */
-#define DIT_LEN 200
-#define symbol_space    BOTH_OFF;   _delay_ms(DIT_LEN);                         t +=     DIT_LEN
-#define letter_space                _delay_ms(2 * DIT_LEN);                     t += 2 * DIT_LEN
-#define word_space                  _delay_ms(4 * DIT_LEN);                     t += 4 * DIT_LEN
-#define dit             BOTH_ON;    _delay_ms(DIT_LEN);         symbol_space;   t +=     DIT_LEN;
-#define dah             BOTH_ON;    _delay_ms(3 * DIT_LEN);     symbol_space;   t += 3 * DIT_LEN;
+#define WPM_TO_DIT_LEN(WPM) (1200 / WPM)
+#define DIT_LEN WPM_TO_DIT_LEN(15)
+#define delay_and_count(x) _delay_ms(x * DIT_LEN); t += x * DIT_LEN
+#define symbol_space    BOTH_OFF;   delay_and_count(1)
+#define letter_space                delay_and_count(2)
+#define word_space                  delay_and_count(4)
+#define dit             BOTH_ON;    delay_and_count(1); symbol_space;
+#define dah             BOTH_ON;    delay_and_count(3); symbol_space;
 
 /**
  * Eine Look-Up Tabelle, um ein Zeichen in seine Räpresentation
@@ -174,7 +201,7 @@ static int32_t string_to_morse(const char* msg)
     return t;
 }
 
-/* 
+/*
  * Pin PA7 wird als Ausgang gesetzt und High geschrieben.
  * Alle anderen Pins an PortA sind als Eingang gesetzt,
  * mit ausgeschaltetem Pull-Up
@@ -233,3 +260,4 @@ int main(void)
     return 0;
 }
 ```
+

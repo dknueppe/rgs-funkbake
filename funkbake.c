@@ -53,6 +53,10 @@
  * 'symbol_space' abgeschlossen, deshalb ist 'letter_space' nur
  * zwei dit lang, und da nach jedem Buchstaben bereits ein 
  * 'letter_space' kommt, ist 'word_space' auch nur 4 dit lang.
+ * DIT_LEN ist die Dauer eines Dit in Millisekunden, das Makro
+ * WPM_TO_DIT_LEN rechnet automatisch die Dauer eines Dit für
+ * eine gewünschte Sendegeschwindigkeit aus. DIT_LEN kann jedoch
+ * auch von Hand auf einen festen Wert gesetzt werden.
  */
 #define WPM_TO_DIT_LEN(WPM) (1200 / WPM)
 #define DIT_LEN WPM_TO_DIT_LEN(15)
